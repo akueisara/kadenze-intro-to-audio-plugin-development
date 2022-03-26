@@ -14,7 +14,8 @@
 //==============================================================================
 /**
 */
-class KadenzePluginAudioProcessorEditor  : public juce::AudioProcessorEditor
+class KadenzePluginAudioProcessorEditor  : public juce::AudioProcessorEditor,
+public juce::Slider::Listener
 {
 public:
     KadenzePluginAudioProcessorEditor (KadenzePluginAudioProcessor&);
@@ -23,6 +24,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    void sliderValueChanged (juce::Slider* slider) override;
 
 private:
     

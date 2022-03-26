@@ -155,7 +155,7 @@ void KadenzePluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     // Make sure to reset the state if your inner loop is processing
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
+    // interleaved by keeping the same state.    
     for (int sample = 0; sample < buffer.getNumSamples(); sample ++)
     {
         // Frequency Gain Formula: x = x - z * (x - y), where x = smoothed value, y = target value, z = scalar (speed)
