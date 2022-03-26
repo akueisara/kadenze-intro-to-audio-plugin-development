@@ -27,6 +27,7 @@ NewProjectAudioProcessor::NewProjectAudioProcessor()
                                                                 0.0f,
                                                                 1.0f,
                                                                 0.5f));
+    mGainSmoothed = mGainParameter->get();
 }
 
 NewProjectAudioProcessor::~NewProjectAudioProcessor()
@@ -155,14 +156,14 @@ void NewProjectAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    for (int sample = 0; sample < buffer.getNumSamples(); sample ++)
     {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-        for (int sample = 0; sample < buffer.getNumSamples(); sample ++)
+        // Frequency Gain Formula: x = x - z * (x - y), where x = smoothed value, y = target value, z = scalar (speed)
+        mGainSmoothed = mGainSmoothed - 0.004 * (mGainSmoothed - mGainParameter->get());
+        for (int channel = 0; channel < totalNumInputChannels; ++channel)
         {
-            channelData[sample] *= mGainParameter->get();
+            auto* channelData = buffer.getWritePointer(channel);
+            channelData[sample] *= mGainSmoothed;
         }
     }
 }
