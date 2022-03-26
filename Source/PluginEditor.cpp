@@ -25,7 +25,19 @@ KadenzePluginAudioProcessorEditor::KadenzePluginAudioProcessorEditor (KadenzePlu
     mGainControlSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     mGainControlSlider.setRange(gainParameter->range.start, gainParameter->range.end);
     mGainControlSlider.setValue(*gainParameter);
-    mGainControlSlider.addListener(this);
+    
+    mGainControlSlider.onDragStart = [gainParameter] {
+        gainParameter->beginChangeGesture();
+    };
+    
+    mGainControlSlider.onValueChange = [this, gainParameter] {
+        *gainParameter = mGainControlSlider.getValue();
+    };
+
+    mGainControlSlider.onDragEnd = [gainParameter] {
+        gainParameter->endChangeGesture();
+    };
+    
     addAndMakeVisible(mGainControlSlider);
 }
 
@@ -48,18 +60,4 @@ void KadenzePluginAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-}
-
-void KadenzePluginAudioProcessorEditor::sliderValueChanged(juce::Slider* slider)
-{
-    auto& params = processor.getParameters();
-    
-    if (slider == &mGainControlSlider) {
-        
-        juce::AudioParameterFloat* gainParameter = (juce::AudioParameterFloat*) params.getUnchecked(0);
-        *gainParameter = mGainControlSlider.getValue();
-        DBG("GAIN SLIDER HAS CHANGED");
-    }
-    
-    DBG("SLIDER VALUE CHANGED");
 }
