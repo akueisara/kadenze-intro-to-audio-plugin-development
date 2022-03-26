@@ -1,1 +1,1 @@
-# -KadenzePlugin
+# KadenzePlugin
