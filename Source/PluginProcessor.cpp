@@ -171,13 +171,12 @@ void KadenzePluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 //==============================================================================
 bool KadenzePluginAudioProcessor::hasEditor() const
 {
-    return false; // (change this to false if you choose to not supply an editor)
+    return true; // (change this to false if you choose to not supply an editor)
 }
 
 juce::AudioProcessorEditor* KadenzePluginAudioProcessor::createEditor()
 {
-//    return new KadenzePluginAudioProcessorEditor (*this);
-    return nullptr;
+    return new KadenzePluginAudioProcessorEditor (*this);
 }
 
 //==============================================================================
