@@ -10,6 +10,8 @@
 
 #include <JuceHeader.h>
 
+#define MAX_DELAY_TIME 2
+
 //==============================================================================
 /**
 */
@@ -57,6 +59,15 @@ private:
     
     juce::AudioParameterFloat* mGainParameter;
     float mGainSmoothed;
+    
+    float mDelayTimeInSamples;
+    float mDelayReadHead;
+    
+    int mCircularBufferWriteHead;
+    int mCircularBufferLength;
+    
+    float* mCircularBuffer;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KadenzePluginAudioProcessor)
 };

@@ -28,10 +28,20 @@ KadenzePluginAudioProcessor::KadenzePluginAudioProcessor()
                                                                 1.0f,
                                                                 0.5f));
     mGainSmoothed = mGainParameter->get();
+    
+    mCircularBuffer = nullptr;
+    mCircularBufferWriteHead = 0;
+    mCircularBufferLength = 0;
+    mDelayTimeInSamples = 0;
+    mDelayReadHead = 0;
 }
 
 KadenzePluginAudioProcessor::~KadenzePluginAudioProcessor()
 {
+    if (mCircularBuffer != nullptr) {
+        delete [] mCircularBuffer;
+        mCircularBuffer = nullptr;
+    }
 }
 
 //==============================================================================
@@ -99,8 +109,16 @@ void KadenzePluginAudioProcessor::changeProgramName (int index, const juce::Stri
 //==============================================================================
 void KadenzePluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    
+    mDelayTimeInSamples = sampleRate * 0.5;
+    
+    mCircularBufferLength = sampleRate * MAX_DELAY_TIME;
+    
+    if (mCircularBuffer == nullptr) {
+        mCircularBuffer = new float[(int)(mCircularBufferLength)];
+    }
+    
+    mCircularBufferWriteHead = 0;
 }
 
 void KadenzePluginAudioProcessor::releaseResources()
@@ -149,21 +167,33 @@ void KadenzePluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.    
-    for (int sample = 0; sample < buffer.getNumSamples(); sample ++)
+    
+    for (int sample = 0; sample < buffer.getNumSamples(); sample++)
     {
         // Frequency Gain Formula: x = x - z * (x - y), where x = smoothed value, y = target value, z = scalar (speed)
         mGainSmoothed = mGainSmoothed - 0.004 * (mGainSmoothed - mGainParameter->get());
+        
         for (int channel = 0; channel < totalNumInputChannels; ++channel)
         {
             auto* channelData = buffer.getWritePointer(channel);
+            
             channelData[sample] *= mGainSmoothed;
+            
+            mCircularBuffer[mCircularBufferWriteHead] = channelData[sample];
+            
+            mDelayReadHead = mCircularBufferWriteHead - mDelayTimeInSamples;
+            
+            if (mDelayReadHead < 0) {
+                mDelayReadHead += mCircularBufferLength;
+            }
+            
+            buffer.addSample(channel, sample, mCircularBuffer[(int)mDelayReadHead]);
+
+            mCircularBufferWriteHead++;
+            
+            if (mCircularBufferWriteHead >= mCircularBufferLength) {
+                mCircularBufferWriteHead = 0;
+            }
         }
     }
 }
