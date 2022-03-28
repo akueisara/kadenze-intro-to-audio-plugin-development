@@ -57,7 +57,9 @@ public:
     
 private:
     
-    float mDryWet;
+    juce::AudioParameterFloat* mDryWetParameter;
+    juce::AudioParameterFloat* mFeedbackParameter;
+    juce::AudioParameterFloat* mDelayTimeParameter;
     
     float mFeedbackLeft;
     float mFeedbackRight;
