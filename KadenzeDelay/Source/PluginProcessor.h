@@ -55,6 +55,8 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
+    float linInterp(float sampleX0, float sampleX1, float inPhase);
+    
 private:
     
     juce::AudioParameterFloat* mDryWetParameter;

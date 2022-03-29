@@ -130,18 +130,8 @@ void KadenzeDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     
     mCircularBufferLength = sampleRate * MAX_DELAY_TIME;
     
-    if (mCircularBufferLeft != nullptr) {
-        delete [] mCircularBufferLeft;
-        mCircularBufferLeft = nullptr;
-    }
-    
     if (mCircularBufferLeft == nullptr) {
         mCircularBufferLeft = new float[(int)mCircularBufferLength];
-    }
-    
-    if (mCircularBufferRight != nullptr) {
-        delete [] mCircularBufferRight;
-        mCircularBufferRight = nullptr;
     }
     
     if (mCircularBufferRight == nullptr) {
@@ -214,8 +204,16 @@ void KadenzeDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             mDelayReadHead += mCircularBufferLength;
         }
         
-        float delaySampleLeft = mCircularBufferLeft[(int)mDelayReadHead];
-        float delaySampleRight = mCircularBufferRight[(int)mDelayReadHead];
+        int readHeadX0 = (int)mDelayReadHead;
+        int readHeadX1 = readHeadX0 + 1;
+        float readHeadFloat = mDelayReadHead - readHeadX0;
+        
+        if (readHeadX1 >= mCircularBufferLength) {
+            readHeadX1 -= mCircularBufferLength;
+        }
+        
+        float delaySampleLeft = linInterp(mCircularBufferLeft[readHeadX0], mCircularBufferLeft[readHeadX1], readHeadFloat);
+        float delaySampleRight = linInterp(mCircularBufferRight[readHeadX0], mCircularBufferRight[readHeadX1], readHeadFloat);
         
         mFeedbackLeft = delaySampleLeft * *mFeedbackParameter;
         mFeedbackRight = delaySampleRight * *mFeedbackParameter;
@@ -261,4 +259,8 @@ void KadenzeDelayAudioProcessor::setStateInformation (const void* data, int size
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new KadenzeDelayAudioProcessor();
+}
+
+float KadenzeDelayAudioProcessor::linInterp(float sampleX0, float sampleX1, float inPhase) {
+    return (1 - inPhase) * sampleX0 + inPhase * sampleX1;
 }
