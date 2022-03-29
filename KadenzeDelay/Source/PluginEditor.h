@@ -32,6 +32,8 @@ private:
     juce::Slider mDryWetSlider;
     juce::Slider mFeedbackSlider;
     juce::Slider mDelayTimeSlider;
+    
+    void setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KadenzeDelayAudioProcessorEditor)
 };

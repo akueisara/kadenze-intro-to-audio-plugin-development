@@ -29,7 +29,7 @@ KadenzeDelayAudioProcessor::KadenzeDelayAudioProcessor()
                                                          0.5));
     addParameter(mFeedbackParameter = new juce::AudioParameterFloat("feedback",
                                                                     "Feedback",
-                                                                    0,
+                                                                    0.0,
                                                                     0.98,
                                                                     0.5));
     addParameter(mDelayTimeParameter = new juce::AudioParameterFloat("delaytime",
