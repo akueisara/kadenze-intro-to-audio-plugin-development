@@ -58,6 +58,8 @@ public:
     float linInterp(float sampleX0, float sampleX1, float inPhase);
     
 private:
+
+    float mDelayTimeSmoothed;
     
     juce::AudioParameterFloat* mDryWetParameter;
     juce::AudioParameterFloat* mFeedbackParameter;
