@@ -69,7 +69,7 @@ private:
     juce::AudioParameterFloat* mPhaseOffsetParameter;
     juce::AudioParameterFloat* mFeedbackParameter;
     
-    juce::AudioParameterFloat* mTypeParameter;
+    juce::AudioParameterInt* mTypeParameter;
     
     float mFeedbackLeft;
     float mFeedbackRight;

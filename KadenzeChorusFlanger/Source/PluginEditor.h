@@ -37,7 +37,7 @@ private:
     
     juce::ComboBox mType;
     
-    void setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX, int boundY);
+    void setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, std::string silderTitle, int boundX, int boundY);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KadenzeChorusFlangerAudioProcessorEditor)
 };

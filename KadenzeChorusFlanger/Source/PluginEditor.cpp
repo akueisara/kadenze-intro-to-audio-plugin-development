@@ -20,19 +20,19 @@ KadenzeChorusFlangerAudioProcessorEditor::KadenzeChorusFlangerAudioProcessorEdit
     auto& params = processor.getParameters();
     
     juce::AudioParameterFloat* dryWetParameter = (juce::AudioParameterFloat*) params.getUnchecked(0);
-    setSlider(this, &mDryWetSlider, dryWetParameter, 0, 0);
+    setSlider(this, &mDryWetSlider, dryWetParameter, "dry wet", 0, 0);
     
     juce::AudioParameterFloat* depthParameter = (juce::AudioParameterFloat*) params.getUnchecked(1);
-    setSlider(this, &mDepthSlider, depthParameter, 100, 0);
+    setSlider(this, &mDepthSlider, depthParameter, "depth", 100, 0);
     
     juce::AudioParameterFloat* rateParameter = (juce::AudioParameterFloat*) params.getUnchecked(2);
-    setSlider(this, &mRateSlider, rateParameter, 200, 0);
+    setSlider(this, &mRateSlider, rateParameter, "rate", 200, 0);
     
     juce::AudioParameterFloat* phaseOffsetParameter = (juce::AudioParameterFloat*) params.getUnchecked(3);
-    setSlider(this, &mPhaseOffsetSlider, phaseOffsetParameter, 300, 0);
+    setSlider(this, &mPhaseOffsetSlider, phaseOffsetParameter, "phase offset", 300, 0);
     
     juce::AudioParameterFloat* feedbackParameter = (juce::AudioParameterFloat*) params.getUnchecked(4);
-    setSlider(this, &mFeedbackSlider, feedbackParameter, 0, 100);
+    setSlider(this, &mFeedbackSlider, feedbackParameter, "feedback", 0, 100);
     
     juce::AudioParameterInt* typeParameter = (juce::AudioParameterInt*) params.getUnchecked(5);
     mType.setBounds(100, 100, 100, 30);
@@ -70,9 +70,10 @@ void KadenzeChorusFlangerAudioProcessorEditor::resized()
     // subcomponents in your editor..
 }
 
-void KadenzeChorusFlangerAudioProcessorEditor::setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX, int boundY)
+void KadenzeChorusFlangerAudioProcessorEditor::setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, std::string silderTitle, int boundX, int boundY)
 {
     slider->setBounds(boundX, boundY, 100, 100);
+    slider->setTitle(silderTitle);
     slider->setSliderStyle(juce::Slider::SliderStyle::RotaryVerticalDrag);
     slider->setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     slider->setRange(param->range.start, param->range.end);
