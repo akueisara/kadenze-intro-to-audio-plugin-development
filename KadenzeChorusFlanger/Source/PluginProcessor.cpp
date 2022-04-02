@@ -28,19 +28,19 @@ KadenzeChorusFlangerAudioProcessor::KadenzeChorusFlangerAudioProcessor()
                                                          1.0,
                                                          0.5));
     
-    addParameter(mDryWetParameter = new juce::AudioParameterFloat("depth",
+    addParameter(mDepthParameter = new juce::AudioParameterFloat("depth",
                                                          "Depth",
                                                          0.0,
                                                          1.0,
                                                          0.5));
     
-    addParameter(mDryWetParameter = new juce::AudioParameterFloat("rate",
+    addParameter(mRateParameter = new juce::AudioParameterFloat("rate",
                                                          "Rate",
                                                          0.1f,
                                                          20.f,
                                                          10.f));
     
-    addParameter(mFeedbackParameter = new juce::AudioParameterFloat("phaseOffset",
+    addParameter(mPhaseOffsetParameter = new juce::AudioParameterFloat("phaseOffset",
                                                                     "Phase Offset",
                                                                     0.0f,
                                                                     1.f,
@@ -52,7 +52,7 @@ KadenzeChorusFlangerAudioProcessor::KadenzeChorusFlangerAudioProcessor()
                                                                     0.98,
                                                                     0.5));
     
-    addParameter(mFeedbackParameter = new juce::AudioParameterFloat("type",
+    addParameter(mTypeParameter = new juce::AudioParameterFloat("type",
                                                                     "Type",
                                                                     0,
                                                                     1,
@@ -68,6 +68,8 @@ KadenzeChorusFlangerAudioProcessor::KadenzeChorusFlangerAudioProcessor()
     
     mFeedbackLeft = 0;
     mFeedbackRight = 0;
+    
+    mLFOPhase = 0;
 }
 
 KadenzeChorusFlangerAudioProcessor::~KadenzeChorusFlangerAudioProcessor()
@@ -149,6 +151,7 @@ void KadenzeChorusFlangerAudioProcessor::changeProgramName (int index, const juc
 void KadenzeChorusFlangerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     mDelayTimeSmoothed = 1;
+    mLFOPhase = 0;
     
     mCircularBufferLength = sampleRate * MAX_DELAY_TIME;
     
@@ -219,7 +222,19 @@ void KadenzeChorusFlangerAudioProcessor::processBlock (juce::AudioBuffer<float>&
     
     for (int sample = 0; sample < buffer.getNumSamples(); sample++)
     {
-        mDelayTimeSmoothed = mDelayTimeSmoothed - 0.001 * (mDelayTimeSmoothed - 0.2);
+        
+        float lfoOut = sin(2 * M_PI * mLFOPhase);
+        
+        mLFOPhase += 50 * getSampleRate();
+        
+        if (mLFOPhase > 1) {
+            mLFOPhase -= 1;
+        }
+        
+        // jmap: Remaps a normalised value (between 0 and 1) to a target range.
+        float lfoOutMapped = juce::jmap(lfoOut, -1.f, 1.f, 0.005f, 0.03f);
+        
+        mDelayTimeSmoothed = mDelayTimeSmoothed - 0.001 * (mDelayTimeSmoothed - lfoOutMapped);
         mDelayTimeInSamples = getSampleRate() * mDelayTimeSmoothed;
         
         mCircularBufferLeft[mCircularBufferWriteHead] = leftChannel[sample] + mFeedbackLeft;
