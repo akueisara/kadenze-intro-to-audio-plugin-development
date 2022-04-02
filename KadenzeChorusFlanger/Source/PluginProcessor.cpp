@@ -58,13 +58,10 @@ KadenzeChorusFlangerAudioProcessor::KadenzeChorusFlangerAudioProcessor()
                                                                     1,
                                                                     0));
     
-    mDelayTimeSmoothed = 0;
     mCircularBufferLeft = nullptr;
     mCircularBufferRight = nullptr;
     mCircularBufferWriteHead = 0;
     mCircularBufferLength = 0;
-    mDelayTimeInSamples = 0;
-    mDelayReadHead = 0;
     
     mFeedbackLeft = 0;
     mFeedbackRight = 0;
@@ -150,7 +147,6 @@ void KadenzeChorusFlangerAudioProcessor::changeProgramName (int index, const juc
 //==============================================================================
 void KadenzeChorusFlangerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    mDelayTimeSmoothed = 1;
     mLFOPhase = 0;
     
     mCircularBufferLength = sampleRate * MAX_DELAY_TIME;
@@ -230,7 +226,38 @@ void KadenzeChorusFlangerAudioProcessor::processBlock (juce::AudioBuffer<float>&
     for (int sample = 0; sample < buffer.getNumSamples(); sample++)
     {
         
-        float lfoOut = sin(2 * M_PI * mLFOPhase);
+        float lfoOutLeft = sin(2 * M_PI * mLFOPhase);
+        
+        float lfoPhaseRight = mLFOPhase + *mPhaseOffsetParameter;
+        
+        if (lfoPhaseRight > 1) {
+            lfoPhaseRight -= 1;
+        }
+        
+        float lfoOutRight = sin(2 * M_PI * lfoPhaseRight);
+        
+        lfoOutLeft *= *mDepthParameter;
+        lfoOutRight *= *mDepthParameter;
+        
+        float lfoOutMappedLeft = 0;
+        float lfoOutMappedRight = 0;
+        
+        /** chrous */
+        if (*mTypeParameter == 0) {
+            // jmap: Remaps a normalised value (between 0 and 1) to a target range.
+            lfoOutMappedLeft = juce::jmap(lfoOutLeft, -1.f, 1.f, 0.005f, 0.03f);
+            lfoOutMappedRight = juce::jmap(lfoOutRight, -1.f, 1.f, 0.005f, 0.03f);
+        /** flanger */
+        } else {
+            lfoOutMappedLeft = juce::jmap(lfoOutLeft, -1.f, 1.f, 0.001f, 0.005f);
+            lfoOutMappedRight = juce::jmap(lfoOutRight, -1.f, 1.f, 0.001f, 0.005f);
+        }
+        
+
+        float delayTimeInSamplesLeft = getSampleRate() * lfoOutMappedLeft;
+
+        
+        float delayTimeInSamplesRight = getSampleRate() * lfoOutMappedRight;
         
         mLFOPhase += *mRateParameter / getSampleRate();
         
@@ -238,33 +265,39 @@ void KadenzeChorusFlangerAudioProcessor::processBlock (juce::AudioBuffer<float>&
             mLFOPhase -= 1;
         }
         
-        lfoOut *= *mDepthParameter;
-        
-        // jmap: Remaps a normalised value (between 0 and 1) to a target range.
-        float lfoOutMapped = juce::jmap(lfoOut, -1.f, 1.f, 0.005f, 0.03f);
-        
-        mDelayTimeSmoothed = mDelayTimeSmoothed - 0.001 * (mDelayTimeSmoothed - lfoOutMapped);
-        mDelayTimeInSamples = getSampleRate() * mDelayTimeSmoothed;
-        
         mCircularBufferLeft[mCircularBufferWriteHead] = leftChannel[sample] + mFeedbackLeft;
         mCircularBufferRight[mCircularBufferWriteHead] = rightChannel[sample] + mFeedbackRight;
         
-        mDelayReadHead = mCircularBufferWriteHead - mDelayTimeInSamples;
+        float delayReadHeadLeft = mCircularBufferWriteHead - delayTimeInSamplesLeft;
         
-        if (mDelayReadHead < 0) {
-            mDelayReadHead += mCircularBufferLength;
+        if (delayReadHeadLeft < 0) {
+            delayReadHeadLeft += mCircularBufferLength;
         }
         
-        int readHeadX0 = (int)mDelayReadHead;
-        int readHeadX1 = readHeadX0 + 1;
-        float readHeadFloat = mDelayReadHead - readHeadX0;
+        float delayReadHeadRight = mCircularBufferWriteHead - delayTimeInSamplesRight;
         
-        if (readHeadX1 >= mCircularBufferLength) {
-            readHeadX1 -= mCircularBufferLength;
+        if (delayReadHeadRight < 0) {
+            delayReadHeadRight += mCircularBufferLength;
         }
         
-        float delaySampleLeft = linInterp(mCircularBufferLeft[readHeadX0], mCircularBufferLeft[readHeadX1], readHeadFloat);
-        float delaySampleRight = linInterp(mCircularBufferRight[readHeadX0], mCircularBufferRight[readHeadX1], readHeadFloat);
+        int readHeadLeftX0 = (int)delayReadHeadLeft;
+        int readHeadLeftX1 = readHeadLeftX0 + 1;
+        float readHeadFloatLeft = delayReadHeadLeft - readHeadLeftX0;
+        
+        if (readHeadLeftX1 >= mCircularBufferLength) {
+            readHeadLeftX1 -= mCircularBufferLength;
+        }
+        
+        int readHeadRightX0 = (int)delayReadHeadRight;
+        int readHeadRightX1 = readHeadRightX0 + 1;
+        float readHeadFloatRight = delayReadHeadRight - readHeadRightX0;
+        
+        if (readHeadRightX1 >= mCircularBufferLength) {
+            readHeadRightX1 -= mCircularBufferLength;
+        }
+        
+        float delaySampleLeft = linInterp(mCircularBufferLeft[readHeadLeftX0], mCircularBufferLeft[readHeadLeftX1], readHeadFloatLeft);
+        float delaySampleRight = linInterp(mCircularBufferRight[readHeadRightX0], mCircularBufferRight[readHeadRightX1], readHeadFloatRight);
         
         mFeedbackLeft = delaySampleLeft * *mFeedbackParameter;
         mFeedbackRight = delaySampleRight * *mFeedbackParameter;
