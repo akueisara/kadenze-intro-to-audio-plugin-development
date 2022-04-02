@@ -30,9 +30,14 @@ private:
     KadenzeChorusFlangerAudioProcessor& audioProcessor;
     
     juce::Slider mDryWetSlider;
+    juce::Slider mDepthSlider;
+    juce::Slider mRateSlider;
+    juce::Slider mPhaseOffsetSlider;
     juce::Slider mFeedbackSlider;
     
-    void setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX);
+    juce::ComboBox mType;
+    
+    void setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX, int boundY);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KadenzeChorusFlangerAudioProcessorEditor)
 };

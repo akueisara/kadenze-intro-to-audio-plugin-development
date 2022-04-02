@@ -20,10 +20,33 @@ KadenzeChorusFlangerAudioProcessorEditor::KadenzeChorusFlangerAudioProcessorEdit
     auto& params = processor.getParameters();
     
     juce::AudioParameterFloat* dryWetParameter = (juce::AudioParameterFloat*) params.getUnchecked(0);
-    setSlider(this, &mDryWetSlider, dryWetParameter, 0);
+    setSlider(this, &mDryWetSlider, dryWetParameter, 0, 0);
     
-    juce::AudioParameterFloat* feedbackParameter = (juce::AudioParameterFloat*) params.getUnchecked(1);
-    setSlider(this, &mFeedbackSlider, feedbackParameter, 100);
+    juce::AudioParameterFloat* depthParameter = (juce::AudioParameterFloat*) params.getUnchecked(1);
+    setSlider(this, &mDepthSlider, depthParameter, 100, 0);
+    
+    juce::AudioParameterFloat* rateParameter = (juce::AudioParameterFloat*) params.getUnchecked(2);
+    setSlider(this, &mRateSlider, rateParameter, 200, 0);
+    
+    juce::AudioParameterFloat* phaseOffsetParameter = (juce::AudioParameterFloat*) params.getUnchecked(3);
+    setSlider(this, &mPhaseOffsetSlider, phaseOffsetParameter, 300, 0);
+    
+    juce::AudioParameterFloat* feedbackParameter = (juce::AudioParameterFloat*) params.getUnchecked(4);
+    setSlider(this, &mFeedbackSlider, feedbackParameter, 0, 100);
+    
+    juce::AudioParameterInt* typeParameter = (juce::AudioParameterInt*) params.getUnchecked(5);
+    mType.setBounds(100, 100, 100, 30);
+    mType.addItem("Chorus", 1);
+    mType.addItem("Flanger", 2);
+    addAndMakeVisible(mType);
+    
+    mType.onChange = [this, typeParameter] {
+        typeParameter->beginChangeGesture();
+        *typeParameter = mType.getSelectedItemIndex();
+        typeParameter->endChangeGesture();
+    };
+    
+    mType.setSelectedItemIndex(*typeParameter);
 }
 
 KadenzeChorusFlangerAudioProcessorEditor::~KadenzeChorusFlangerAudioProcessorEditor()
@@ -38,7 +61,7 @@ void KadenzeChorusFlangerAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    g.drawFittedText ("Chorus Flanger", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void KadenzeChorusFlangerAudioProcessorEditor::resized()
@@ -47,9 +70,9 @@ void KadenzeChorusFlangerAudioProcessorEditor::resized()
     // subcomponents in your editor..
 }
 
-void KadenzeChorusFlangerAudioProcessorEditor::setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX)
+void KadenzeChorusFlangerAudioProcessorEditor::setSlider(juce::Component* component, juce::Slider* slider, juce::AudioParameterFloat* param, int boundX, int boundY)
 {
-    slider->setBounds(boundX, 0, 100, 100);
+    slider->setBounds(boundX, boundY, 100, 100);
     slider->setSliderStyle(juce::Slider::SliderStyle::RotaryVerticalDrag);
     slider->setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     slider->setRange(param->range.start, param->range.end);
