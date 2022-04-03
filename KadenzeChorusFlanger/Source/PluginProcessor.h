@@ -59,24 +59,29 @@ public:
 
 private:
     
-    float mLFOPhase;
-    
+    // Parameter Declarations
+
     juce::AudioParameterFloat* mDryWetParameter;
     juce::AudioParameterFloat* mDepthParameter;
     juce::AudioParameterFloat* mRateParameter;
     juce::AudioParameterFloat* mPhaseOffsetParameter;
     juce::AudioParameterFloat* mFeedbackParameter;
-    
     juce::AudioParameterInt* mTypeParameter;
     
-    float mFeedbackLeft;
-    float mFeedbackRight;
+    // Circular Buffer Data
     
     int mCircularBufferWriteHead;
     int mCircularBufferLength;
     
     float* mCircularBufferLeft;
     float* mCircularBufferRight;
+    
+    float mFeedbackLeft;
+    float mFeedbackRight;
+    
+    // LFO Data
+    
+    float mLFOPhase;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KadenzeChorusFlangerAudioProcessor)
